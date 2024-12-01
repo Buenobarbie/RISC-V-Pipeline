@@ -1,21 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
-[*] Sun Dec 01 18:57:07 2024
+[*] Sun Dec 01 22:16:21 2024
 [*]
 [dumpfile] "C:\Users\najoa\Documents\OAC\RISC-V-Pipeline\RISCV_OAC\teste_final.vcd"
-[dumpfile_mtime] "Sun Dec 01 18:55:36 2024"
-[dumpfile_size] 168336
+[dumpfile_mtime] "Sun Dec 01 22:14:10 2024"
+[dumpfile_size] 195155
 [savefile] "C:\Users\najoa\Documents\OAC\RISC-V-Pipeline\RISCV_OAC\teste_final.gtkw"
 [timestart] 0
 [size] 1366 705
 [pos] -61 -61
-*-17.991966 730000 210000 330000 450000 490000 610000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-17.991966 0 210000 330000 450000 490000 610000 731000 770000 890000 1010000 1050000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] testbench.
 [treeopen] testbench.RISC_V.
 [sst_width] 197
 [signals_width] 158
 [sst_expanded] 1
-[sst_vpaned_height] 293
+[sst_vpaned_height] 364
 @28
 testbench.clk
 testbench.RISC_V.fd.CLK
@@ -26,10 +26,9 @@ testbench.RISC_V.fd.pc_out[63:0]
 testbench.RISC_V.d_mem_data[63:0]
 testbench.RISC_V.fd.RF.reg_file[1].reg_instance.Q[63:0]
 testbench.RISC_V.fd.RF.reg_file[2].reg_instance.Q[63:0]
-@23
+@22
 testbench.RISC_V.fd.RF.reg_file[3].reg_instance.Q[63:0]
-@24
+@23
 testbench.RISC_V.fd.RF.reg_file[4].reg_instance.Q[63:0]
-testbench.RISC_V.fd.imme_out[63:0]
 [pattern_trace] 1
 [pattern_trace] 0
