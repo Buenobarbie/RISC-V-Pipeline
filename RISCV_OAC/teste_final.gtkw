@@ -1,0 +1,33 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Sun Dec 01 07:22:34 2024
+[*]
+[dumpfile] "C:\iverilog\bin\teste_final.vcd"
+[dumpfile_mtime] "Sun Dec 01 06:59:54 2024"
+[dumpfile_size] 531246
+[savefile] "C:\iverilog\bin\teste_final.gtkw"
+[timestart] 0
+[size] 1366 705
+[pos] -165 -98
+*-17.968697 735000 215000 335000 455000 495000 615000 736000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] testbench.
+[treeopen] testbench.RISC_V.
+[sst_width] 197
+[signals_width] 158
+[sst_expanded] 1
+[sst_vpaned_height] 236
+@28
+testbench.clk
+testbench.RISC_V.fd.CLK
+@22
+testbench.RISC_V.uc.state[3:0]
+@24
+testbench.RISC_V.fd.pc_out[63:0]
+testbench.RISC_V.d_mem_data[63:0]
+testbench.RISC_V.fd.RF.reg_file[1].reg_instance.Q[63:0]
+testbench.RISC_V.fd.RF.reg_file[2].reg_instance.Q[63:0]
+testbench.RISC_V.fd.RF.reg_file[3].reg_instance.Q[63:0]
+testbench.RISC_V.fd.RF.reg_file[4].reg_instance.Q[63:0]
+testbench.RISC_V.fd.imme_out[63:0]
+[pattern_trace] 1
+[pattern_trace] 0
