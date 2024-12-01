@@ -12,7 +12,7 @@ module memoria (input [5:0] i_mem_addr, input [5:0] d_mem_addr, input d_we, outp
     end
 
     initial begin
-        instruction[0] = 32'b0;
+        instruction[0] = 32'b0000000_00000_00000_000_00010_1100011; // BEQ:   Formato Sb; if(true) jump to instruction[0+4]
         instruction[4] = 32'b000000000001_11111_000_00001_0000011;  // LOADa:  Formato I; x1 <= 50
         instruction[8] = 32'b000000000010_11111_000_00010_0000011;  // LOADb:  Formato I; x2 <= 30
         instruction[12] = 32'b000000000100_11111_000_00011_0000011;  // LOADc:  Formato I; x3 <= LSB(1)
@@ -27,7 +27,7 @@ module memoria (input [5:0] i_mem_addr, input [5:0] d_mem_addr, input d_we, outp
 
             instruction[32] = 32'b0100000_00010_00001_000_00111_0110011;  // SUB:  Formato R; x7 <= x2 - x1
             instruction[36] = 32'b0000000_00000_00111_000_00010_0110011;  // ADD:  Formato R; x2 <= x7 + x0
-            instruction[40] = 32'b1111111_10000_10000_000_01001_1110011;  // BEQ:  Formato Sb; if (true) jump to instruction[40-24]
+            instruction[40] = 32'b1111111_10000_10000_000_10101_1100011;  // BEQ:  Formato Sb; if (true) jump to instruction[40-24]
 
         instruction[56] = 32'b0000000_00001_00000_000_00011_0100011; // STORE:  Formato S; MEM <= x1
         instruction[60] = 32'b0000000_00000_00000_000_00000_1100011;   // BEQ:  Formato Sb; if (true) jump to instruction[60]

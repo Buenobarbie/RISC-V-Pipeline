@@ -3,25 +3,19 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     input wire        rst_n,  
     input wire        d_mem_we, 
     input wire        rf_we,
-    input wire        alu_src, 
+    input wire        ula_src, 
     input wire        pc_src, 
     input wire        rf_src,
-    input wire [3:0]  alu_cmd,
+    input wire [2:0]  ula_cmd,
     input wire [31:0] i_mem_data,
     //saidas
-    output wire [6:0]                opcode, 
-    output wire [3:0]                alu_flags,  
+    output wire                      zero,
     output wire [i_addr_bits-1:0]    i_mem_addr,  
     output wire [d_addr_bits-1:0]    d_mem_addr,
 
     inout [63:0] d_mem_data
 );
 
-    wire        flags, 
-                add_mux, 
-                branch;
-
-    wire [2:0]  ULA_operation;
     wire [31:0] mem_out;
 
     wire [63:0] pc_out, 
@@ -55,7 +49,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     mux_2x1 mux_add (
         .d0 (add_out_1  ), 
         .d1 (add_out_2  ), 
-        .S  (add_mux    ), 
+        .S  (pc_src     ), 
         .Y  (add_out_mux)
     );
 
@@ -91,17 +85,16 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     mux_2x1 mux_ula (
         .d0 (rf_out_B   ), 
         .d1 (imme_out   ), 
-        .S  (alu_src    ), 
+        .S  (ula_src    ), 
         .Y  (ula_in     )
     );
 
-    //MUITO SUS
     ULA ula (
-        .operation  (ULA_operation  ), 
+        .ula_src    (ula_cmd        ), 
         .operand1   (ula_in         ), 
         .operand2   (rf_out_A       ), 
         .result     (ula_out        ), 
-        .flag       (alu_flags      )
+        .zero       (zero           )
     );
 
     //SUS
@@ -135,44 +128,8 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    assign sel = (mem_out[6:0] == 7'b1100011) ? 1'b1 : 1'b0;
-    
-    // Talvez, errado
-    mux_2x1 #( .N(1) ) mux_mux (
-        .d0 (pc_src ), 
-        .d1 (flags  ), 
-        .S  (sel    ), 
-        .Y  (add_mux)
-    );
-
-    //assign feito para controlar quando vamos somar ou subtrair o imediato do PC
-    assign branch = (mem_out[6:0] != 7'b1100011) ? 1'b0 : mem_out[31];
-
-    //assigns feitos para usar os flags da ULA no condtionals (beq, bne, ...)
-    //so usamos o beq na primeira entrega
-    assign flags = (mem_out[6:0] != 7'b1100011) ? 1'b0 : 
-                   (mem_out[14:12] == 3'b000) ? alu_flags[0] :
-                   (mem_out[14:12] == 3'b001) ? ~alu_flags[0] :
-                   (mem_out[14:12] == 3'b100) ? alu_flags[1] :
-                   (mem_out[14:12] == 3'b101) ? ~alu_flags[1] :
-                   (mem_out[14:12] == 3'b110) ? alu_flags[1] :
-                   (mem_out[14:12] == 3'b111) ? ~alu_flags[1] : 1'b0;
-
-
-    //Assigns feitos para controlar a operacao realizada na ULA
-    //0: soma
-    //1: subtracao
-    //2: and
-    assign ULA_operation = (mem_out[6:0] == 7'b1100011) ? 2'd1 :
-                           (mem_out[6:0] != 7'b0110011) ? 2'd0 : 
-                           (mem_out[31:25] == 7'b0100000) ? 2'd1 : 
-                           (mem_out[14:12] == 3'b111) ? 2'd2 : 2'd0;
-
-    assign opcode = mem_out[6:0];
-
     //Fazemos isso no datapath para que cada 4 ciclos de clock da UC ser 1 ciclo de clock do FD
 
-    // Tá errado
     reg CLK = 0;
     integer i = 2;
 

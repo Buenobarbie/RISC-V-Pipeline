@@ -18,7 +18,7 @@ module testbench();
 
     // Inicializa registradores e fios necessários para a simulação
 
-    reg clk = falso, reset = falso;
+    reg clk = verdadeiro, reset = falso;
 
     wire [63:0] d_mem_data;
     wire [31:0] i_mem_data;
@@ -57,7 +57,7 @@ module testbench();
 
         reset = 0;
 
-        #(3*clock_period);
+        #(5*clock_period);
 
         reset = 1;
 
