@@ -1,7 +1,8 @@
 module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     input wire        clk, 
     input wire        rst_n,  
-    input wire        d_mem_we, 
+    input wire        d_mem_we_fd,
+    input wire        d_mem_re_fd, 
     input wire        rf_we,
     input wire        ula_src, 
     input wire        branch, 
@@ -10,6 +11,8 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     input wire [31:0] i_mem_data,
     //saidas
     output wire                      zero,
+    output wire                      d_mem_we,
+    output wire                      d_mem_re,
     output wire [i_addr_bits-1:0]    i_mem_addr,  
     output wire [d_addr_bits-1:0]    d_mem_addr,
 
@@ -26,7 +29,9 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
          branch3, 
          d_mem_we3,
          rf_we4,
-         rf_src4;
+         rf_src4,
+         d_mem_re2,
+         d_mem_re3;
 
     wire [2:0] ula_cmd2;
 
@@ -115,18 +120,21 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    regN #( .N(296) ) ID_EX (
+    regN #( .N(297) ) ID_EX (
         .CLK    (clk                                                       ),
         .RESET  (~rst_n                                                    ),
         .ENABLE (1'b1                                                      ),
-        .LOAD   ({pc_reg_1, rf_out_A, rf_out_B, imme_out, instr, 
-                  rf_we, rf_src, branch, d_mem_we, ula_src, ula_cmd}       ),
-        .Q      ({pc_reg_2, rf_reg_A, rf_reg_B, imme_reg, instr_2, 
-                  rf_we2, rf_src2, branch2, d_mem_we2, ula_src2, ula_cmd2} )
+        .LOAD   ({pc_reg_1, rf_out_A, rf_out_B, imme_out, instr, rf_we, 
+                  rf_src, branch, d_mem_we_fd, d_mem_re_fd, ula_src, ula_cmd}    ),
+        .Q      ({pc_reg_2, rf_reg_A, rf_reg_B, imme_reg, instr_2, rf_we2, 
+                  rf_src2, branch2, d_mem_we2, d_mem_re2,ula_src2, ula_cmd2})
     );  
 
 ////////////////////////////////////////////////// Execution //////////////////////////////////////////////////////////   
 
+    //assign feito para controlar o shift do imediato
+    assign imme_shift = imme_reg << 1'b1;
+    
     Add add2 (pc_reg_2, imme_shift, add_out_2);
 
     mux_2x1 mux_ula (
@@ -144,17 +152,14 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
         .zero       (zero           )
     );
 
-    //assign feito para controlar o shift do imediato
-    assign imme_shift = imme_out << 1'b1;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    regN #( .N(229) ) EX_MEM (
+    regN #( .N(230) ) EX_MEM (
         .CLK    (clk                                                 ),
         .RESET  (~rst_n                                              ),
         .ENABLE (1'b1                                                ),
-        .LOAD   ({add_out_2, zero, ula_out, rf_reg_B, instr_2, rf_we2, rf_src2, branch2, d_mem_we2}),
-        .Q      ({add_reg_2, zero_reg, ula_reg, rf_reg_B_2, instr_3, rf_we3, rf_src3, branch3, d_mem_we3} )
+        .LOAD   ({add_out_2, zero, ula_out, rf_reg_B, instr_2, rf_we2, rf_src2, branch2, d_mem_we2, d_mem_re2}),
+        .Q      ({add_reg_2, zero_reg, ula_reg, rf_reg_B_2, instr_3, rf_we3, rf_src3, branch3, d_mem_we3, d_mem_re3} )
     );
 
 ///////////////////////////////////////////////////// Memory //////////////////////////////////////////////////////////   
@@ -162,11 +167,14 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     //assign feitos para garantir o funcionamento do inout
 
     assign d_mem_data = (d_mem_we3) ? rf_reg_B_2 : 64'bz;
-    assign ram_out = (~d_mem_we3) ? d_mem_data : 64'bz;
+    assign ram_out = (d_mem_re3) ? d_mem_data : 64'bz;
 
     assign d_mem_addr = ula_reg;
 
     assign pc_src = zero_reg & branch3;
+
+    assign d_mem_re = d_mem_re3;
+    assign d_mem_we = d_mem_we3;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

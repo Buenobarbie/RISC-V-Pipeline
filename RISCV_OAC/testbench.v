@@ -24,7 +24,7 @@ module testbench();
     wire [31:0] i_mem_data;
     wire [5:0] i_mem_addr, d_mem_addr;
 
-    wire we;
+    wire we, re;
 
     // Inicializa módulos a serem usados
 
@@ -34,6 +34,7 @@ module testbench();
         .i_mem_addr (i_mem_addr ), 
         .i_mem_data (i_mem_data ), 
         .d_mem_we   (we         ),
+        .d_mem_re   (re         ),
         .d_mem_addr (d_mem_addr ), 
         .d_mem_data (d_mem_data )
     );
@@ -41,7 +42,8 @@ module testbench();
     memoria memoria_externa (
         .i_mem_addr (i_mem_addr ), 
         .d_mem_addr (d_mem_addr ), 
-        .d_we       (we         ), 
+        .d_we       (we         ),
+        .d_re       (re         ), 
         .i_mem_data (i_mem_data ), 
         .d_mem_data (d_mem_data )
     );

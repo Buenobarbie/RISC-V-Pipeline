@@ -18,7 +18,7 @@ module RegisterFile (
     generate
         for (i = 0; i < 32; i = i + 1) begin : reg_file
             regN #(.N(64)) reg_instance (
-                .CLK(CLK),
+                .CLK(~CLK),
                 .RESET(RESET),                // Reset global
                 .ENABLE((WE && WR_ADDR == i && i != 0)), // Ativa escrita somente no registrador correto
                 .LOAD(WR_DATA),

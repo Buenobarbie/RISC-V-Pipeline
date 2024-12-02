@@ -1,5 +1,5 @@
-module memoria (input [5:0] i_mem_addr, input [5:0] d_mem_addr, input d_we, output [31:0] i_mem_data, 
-                inout [63:0] d_mem_data);
+module memoria (input [5:0] i_mem_addr, input [5:0] d_mem_addr, input d_we, input d_re,
+                output [31:0] i_mem_data, inout [63:0] d_mem_data);
 
     reg [31:0] instruction [63:0];
     reg [63:0] data [127:64];
@@ -38,6 +38,6 @@ module memoria (input [5:0] i_mem_addr, input [5:0] d_mem_addr, input d_we, outp
     end
 
     assign i_mem_data = instruction[i_mem_addr];
-    assign d_mem_data = (!d_we) ? data[d_mem_addr + 64] : 64'bz;
+    assign d_mem_data = (d_re) ? data[d_mem_addr + 64] : 64'bz;
 
 endmodule

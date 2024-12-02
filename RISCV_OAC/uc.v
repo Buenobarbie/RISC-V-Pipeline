@@ -7,6 +7,7 @@ module uc (input wire        clk,
 
            // Saídas
            output reg        d_mem_we,
+           output reg        d_mem_re,
            output reg        rf_we,   
            output reg  [2:0] ula_cmd, 
            output reg        ula_src, 
@@ -41,29 +42,36 @@ module uc (input wire        clk,
 /////////////////////////////////////////////////// UC Completa //////////////////////////////////////////////////////   
 
     // Estados
-    reg [3:0] state, 
+    reg [2:0] state, 
               next_state;
 
     // Sinais de Controle
     reg [1:0] ula_ops;
 
     // Parâmetros para os estados
-    parameter RESET     = 4'b0000, 
-              FETCH     = 4'b0001, 
-              DECODE    = 4'b0010, 
-              EXE_ADD   = 4'b0011, 
-              EXE_LB    = 4'b0100, 
-              EXE_SB    = 4'b0101, 
-              EXE_BEQ   = 4'b0110,  
-              MEM       = 4'b0111,
-              WB        = 4'b1000;
+    parameter RESET     = 3'b000, //0
+              EXE_ADD   = 3'b001, //1
+              EXE_LB    = 3'b010, //2
+              EXE_SB    = 3'b011, //3
+              EXE_BEQ   = 3'b100, //4
+              STALL     = 3'b101; //5
+
     
     always @(posedge clk) begin 
         if (~rst_n) begin
             state <= RESET;     
         end
         else begin 
-            state <= next_state;
+            if (state == RESET) state <= STALL;
+            else begin
+                case (opcode)
+                    7'b0110011: state <= EXE_ADD; // R - Type
+                    7'b0000011: state <= EXE_LB;  // I - Type
+                    7'b0100011: state <= EXE_SB;  // S - Type
+                    7'b1100011: state <= EXE_BEQ; // SB - Type
+                    default:    state <= RESET;
+                endcase
+            end
         end
     end
 
@@ -73,78 +81,64 @@ module uc (input wire        clk,
                 RESET:
                     begin
                         d_mem_we <= 0;
+                        d_mem_re <= 0;
                         rf_we <= 0;
                         branch <= 0;
                         ula_src <= 0;
                         rf_src <= 0;
-                        next_state <= FETCH;
                     end
-                FETCH:
+                STALL:
                     begin
-                        next_state <= DECODE;
-                        branch <= 0;
-                        rf_we <= 0;
                         d_mem_we <= 0;
-                    end
-                DECODE:
-                    begin
-                        case (opcode)
-                            7'b0110011: begin //R - Type
-                                next_state <= EXE_ADD;
-                            end
-                            7'b0000011: begin//I - Type
-                                next_state <= EXE_LB;
-                            end
-                            7'b0100011: begin//S - Type
-                                next_state <= EXE_SB;
-                            end
-                            7'b1100011: begin//SB - Type
-                                next_state <= EXE_BEQ;
-                            end
-                        endcase
+                        d_mem_re <= 0;
+                        rf_we <= 0;
+                        branch <= 0;
+                        ula_src <= 0;
+                        rf_src <= 0;
                     end
                 EXE_ADD:
                     begin
-                        ula_src <= 0;
-                        rf_src <= 0;
-                        branch <= 0;
-                        rf_we <= 1;
-                        ula_ops <= 2'b10;
-                        next_state <= MEM;
+                        ula_src     <= 0;
+                        rf_src      <= 0;
+                        rf_we       <= 1;
+                        d_mem_we    <= 0;
+                        d_mem_re    <= 0;
+                        branch      <= 0;
+                        ula_ops     <= 2'b10;
+                        // next_state  <= DECODE;
                     end
                 EXE_LB:
                     begin
-                        ula_src <= 1;
-                        rf_src <= 1;
-                        branch <= 0;
-                        rf_we <= 1;
-                        ula_ops <= 2'b00;
-                        next_state <= MEM;
+                        ula_src     <= 1;
+                        rf_src      <= 1;
+                        rf_we       <= 1;
+                        d_mem_we    <= 0;
+                        d_mem_re    <= 1;
+                        branch      <= 0;
+                        ula_ops     <= 2'b00;
+                        // next_state  <= DECODE;
                     end
                 EXE_SB:
                     begin
-                        ula_src <= 1;
-                        rf_src <= 0;
-                        branch <= 0;
-                        d_mem_we <= 1;
-                        ula_ops <= 2'b00;
-                        next_state <= MEM;
+                        ula_src     <= 1;
+                        rf_src      <= 0;
+                        rf_we       <= 0;
+                        d_mem_we    <= 1;
+                        d_mem_re    <= 0;
+                        branch      <= 0;
+                        ula_ops     <= 2'b00;
+                        // next_state  <= DECODE;
                     end
                 EXE_BEQ:
                     begin
-                        ula_src <= 0;
-                        rf_src <= 0;
-                        branch <= 1;
-                        ula_ops <= 2'b01;
-                        next_state <= MEM;
-                    end
-                MEM:
-                    begin
-                        next_state <= WB;
-                    end
-                WB:
-                    begin
-                        next_state <= FETCH;
+                        ula_src     <= 0;
+                        rf_src      <= 0;
+                        rf_we       <= 0;
+                        d_mem_we    <= 0;
+                        d_mem_re    <= 0;
+                        branch      <= 1;
+                        ula_ops     <= 2'b01;
+                        // next_state  <= DECODE;
                     end
             endcase
         end 
