@@ -1,46 +1,26 @@
-module uc (input wire        clk,        // Check
-           input wire        rst_n,      // Check
-           input wire [6:0]  opcode,     // Check
-           input wire [2:0]  func3,      // Check
-           input wire        zero,       // Check
-           input wire        func7b5,    // Check
+module uc (input wire        clk,     
+           input wire        rst_n,   
+           input wire [6:0]  opcode,  
+           input wire [2:0]  func3,   
+           input wire        zero,    
+           input wire        func7b5, 
 
            // Saídas
-           output wire       d_mem_we,   // Check
-           output wire       rf_we,      // Check
-           output reg  [2:0] ula_cmd,    // Check
-           output wire       ula_src,    // Check
-           output wire       pc_src,     // Check
-           output wire       rf_src
+           output reg        d_mem_we,
+           output reg        rf_we,   
+           output reg  [2:0] ula_cmd, 
+           output reg        ula_src, 
+           output reg        branch,  
+           output reg        rf_src   
 );
 
-    wire [1:0] ULA_ops;
-    wire jump;
-    reg [8:0] controls;
-
-    assign {ULA_ops, jump} = controls[2:0];
-
-    // assign {RegWrite, ALUSrc, MemWrite,
-    //         ResultSrc, Branch, ALUOp, Jump} = controls;
-
-    always @(opcode) begin
-        case(opcode)
-            // RegWrite_ALUSrc_MemWrite_ResultSrc_Branch_ULA_ops_jump
-            7'b0000011: controls <= 11'b1_1_0_01_0_00_0; // lw
-            7'b0100011: controls <= 11'b0_1_1_00_0_00_0; // sw
-            7'b0110011: controls <= 11'b1_0_0_00_0_10_0; // R-type 
-            7'b1100011: controls <= 11'b0_0_0_00_1_01_0; // beq
-            7'b0010011: controls <= 11'b1_1_0_00_0_10_0; // I-type ALU
-            7'b1101111: controls <= 11'b1_0_0_10_0_00_1; // jal
-            default:    controls <= 11'bx_x_x_xx_x_xx_x; // non-implemented instruction
-        endcase
-    end
+//////////////////////////////////////////////// ULA Operations //////////////////////////////////////////////////////   
 
     wire  RtypeSub;
     assign RtypeSub = func7b5 & opcode[5];  // TRUE for R-type subtract instruction
 
-    always @(posedge clk or ULA_ops) begin
-        case(ULA_ops)
+    always @(posedge clk or ula_ops) begin
+        case(ula_ops)
         2'b00:                ula_cmd <= 3'b000; // addition
         2'b01:                ula_cmd <= 3'b001; // subtraction
         default: case(func3) // R-type or I-type ALU
@@ -56,34 +36,27 @@ module uc (input wire        clk,        // Check
         endcase
     end
 
-    assign pc_src = add_mux & zero | jump;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-  
-
+/////////////////////////////////////////////////// UC Completa //////////////////////////////////////////////////////   
 
     // Estados
-    reg [3:0] state, next_state;
-    reg aux; //SUS
+    reg [3:0] state, 
+              next_state;
+
+    // Sinais de Controle
+    reg [1:0] ula_ops;
 
     // Parâmetros para os estados
-    parameter RESET = 3'd0, 
-              FETCH = 3'd1, 
-              DECODE = 3'd2, 
-              add = 3'd3, 
-              lb = 3'd4, 
-              sb = 3'd5, 
-              beq = 3'd6, 
-              WB = 3'd7;
-
-    reg ula_operation, ram_write_enable, rf_write_enable, add_mux, ula_mux, ram_mux;
-
-    assign d_mem_we = ram_write_enable;
-    assign rf_we = rf_write_enable;
-    // assign pc_src = add_mux;
-    assign ula_src = ula_mux;
-    assign rf_src = ram_mux;
-
+    parameter RESET     = 4'b0000, 
+              FETCH     = 4'b0001, 
+              DECODE    = 4'b0010, 
+              EXE_ADD   = 4'b0011, 
+              EXE_LB    = 4'b0100, 
+              EXE_SB    = 4'b0101, 
+              EXE_BEQ   = 4'b0110,  
+              MEM       = 4'b0111,
+              WB        = 4'b1000;
     
     always @(posedge clk) begin 
         if (~rst_n) begin
@@ -94,92 +67,86 @@ module uc (input wire        clk,        // Check
         end
     end
 
-
     always@ (posedge clk or state)
         begin
             case (state)
                 RESET:
                     begin
-                        ram_write_enable <= 0;
-                        rf_write_enable <= 0;
-                        add_mux <= 0;
-                        ula_mux <= 0;
-                        ram_mux <= 0;
+                        d_mem_we <= 0;
+                        rf_we <= 0;
+                        branch <= 0;
+                        ula_src <= 0;
+                        rf_src <= 0;
                         next_state <= FETCH;
                     end
                 FETCH:
                     begin
                         next_state <= DECODE;
-                        add_mux <= 0;
-                        rf_write_enable <= 0;
-                        ram_write_enable <= 0;
-                        aux <= 0;
+                        branch <= 0;
+                        rf_we <= 0;
+                        d_mem_we <= 0;
                     end
                 DECODE:
                     begin
                         case (opcode)
                             7'b0110011: begin //R - Type
-                                next_state <= add;
+                                next_state <= EXE_ADD;
                             end
                             7'b0000011: begin//I - Type
-                                next_state <= lb;
+                                next_state <= EXE_LB;
                             end
                             7'b0100011: begin//S - Type
-                                next_state <= sb;
+                                next_state <= EXE_SB;
                             end
                             7'b1100011: begin//SB - Type
-                                next_state <= beq;
+                                next_state <= EXE_BEQ;
                             end
                         endcase
                     end
-                // EX: 
-                //     begin
-
-                //     end
-                add:
+                EXE_ADD:
                     begin
-                        ula_mux <= 0;
-                        ram_mux <= 0;
-                        add_mux <= 0;
-                        ram_write_enable <= 0;
-                        next_state <= WB;
-                        aux <= 1;
+                        ula_src <= 0;
+                        rf_src <= 0;
+                        branch <= 0;
+                        rf_we <= 1;
+                        ula_ops <= 2'b10;
+                        next_state <= MEM;
                     end
-                lb:
+                EXE_LB:
                     begin
-                        ula_mux <= 1;
-                        ram_mux <= 1;
-                        add_mux <= 0;
-                        ram_write_enable <= 0;
-                        next_state <= WB;
-                        aux <= 1;
+                        ula_src <= 1;
+                        rf_src <= 1;
+                        branch <= 0;
+                        rf_we <= 1;
+                        ula_ops <= 2'b00;
+                        next_state <= MEM;
                     end
-                sb:
+                EXE_SB:
                     begin
-                        ula_mux <= 1;
-                        ram_mux <= 0;
-                        add_mux <= 0;
-                        ram_write_enable <= 1;
-                        next_state <= WB;
+                        ula_src <= 1;
+                        rf_src <= 0;
+                        branch <= 0;
+                        d_mem_we <= 1;
+                        ula_ops <= 2'b00;
+                        next_state <= MEM;
                     end
-                beq:
+                EXE_BEQ:
                     begin
-                        ula_mux <= 0;
-                        ram_mux <= 1;
-                        add_mux <= 1;
-                        ram_write_enable <= 0;
+                        ula_src <= 0;
+                        rf_src <= 0;
+                        branch <= 1;
+                        ula_ops <= 2'b01;
+                        next_state <= MEM;
+                    end
+                MEM:
+                    begin
                         next_state <= WB;
                     end
-                // MEM:
-                //     begin
-                //         next_state <= FETCH;
-                //         if (aux) rf_write_enable <= 1;
-                //     end
                 WB:
                     begin
                         next_state <= FETCH;
-                        if (aux) rf_write_enable <= 1;
                     end
             endcase
         end 
+
 endmodule

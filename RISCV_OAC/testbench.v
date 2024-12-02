@@ -61,7 +61,7 @@ module testbench();
 
         reset = 1;
 
-        #(120*clock_period);
+        #(135*clock_period);
 
         $display("Teste | Valor: %d.", 1'b1);
 

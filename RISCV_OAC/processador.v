@@ -10,7 +10,7 @@ module polirv #(parameter i_addr_bits = 6, parameter d_addr_bits = 6)
     wire       func7b5, 
                rf_we, 
                ula_mux, 
-               pc_mux, 
+               branch, 
                rf_mux, 
                zero;
 
@@ -27,10 +27,10 @@ module polirv #(parameter i_addr_bits = 6, parameter d_addr_bits = 6)
         .func7b5    (func7b5    ),
         .d_mem_we   (d_mem_we   ), 
         .rf_we      (rf_we      ), 
-        .ula_cmd    (ula_cmds   ), //SUS
+        .ula_cmd    (ula_cmds   ),
         .ula_src    (ula_mux    ),
-        .pc_src     (pc_mux     ), //mudar o nome
-        .rf_src     (rf_mux     )  //mudar o nome
+        .branch     (branch     ),
+        .rf_src     (rf_mux     ) 
 );
 
 
@@ -39,10 +39,10 @@ module polirv #(parameter i_addr_bits = 6, parameter d_addr_bits = 6)
         .rst_n      (rst_n      ),
         .d_mem_we   (d_mem_we   ), 
         .rf_we      (rf_we      ), 
-        .ula_src    (ula_mux    ), //SUS
-        .pc_src     (pc_mux     ), 
+        .ula_src    (ula_mux    ),
+        .branch     (branch     ), 
         .rf_src     (rf_mux     ),
-        .ula_cmd    (ula_cmds   ), //SUS
+        .ula_cmd    (ula_cmds   ),
         .i_mem_data (i_mem_data ),
 
         .zero       (zero       ),
