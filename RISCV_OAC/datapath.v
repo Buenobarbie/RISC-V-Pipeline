@@ -79,8 +79,6 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 //////////////////////////////////////////////// Instruction decode ///////////////////////////////////////////////////   
 
     assign instruction = reg_IF_ID[31:0];
@@ -114,7 +112,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     mux_2x1  #(.N(8))
     mux_stall(
         .d0 (8'b0  ), // Se stall (harzard_detection_unit = 0), os sinais de controle devem ser todos 0
-        .d1 ({d_mem_we, rf_we, ula_cmd, ula_src, branch, rf_src}        ), 
+        .d1 ({d_mem_we, rf_we, ula_cmd, ula_src, branch, rf_src}  ), 
         .S  (hazard_detection_src), 
         .Y  (control_signals          )
     );
@@ -123,19 +121,19 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     // WB_control_signals: sinais de controle para o estágio de write-back
     // MEM_control_signals: sinais de controle para o estágio de memória
     // EX_control_signals: sinais de controle para o estágio de execução
-    // rf_out_A: dado do registrador 1
-    // rf_out_B: dado do registrador 2
-    // regA_addr reg_IF_ID[19:15] : endereço do registrador 1
-    // regB_addr reg_IF_ID[24:20]: endereço do registrador 2
-    // reg_IF_ID[11:7] : endereço do registrador de destino
-    // registrador_IF_ID[pc_out]: endereço da instrução vindo do registrador anterior
-    // imme_out: imediato
+    // [329:266] rf_out_A: dado do registrador 1
+    // [265:202] rf_out_B: dado do registrador 2
+    // [201:138] regA_addr reg_IF_ID[19:15] : endereço do registrador 1
+    // [137:133] regB_addr reg_IF_ID[24:20]: endereço do registrador 2
+    // [132:128]reg_IF_ID[11:7] : endereço do registrador de destino
+    // [127:64] registrador_IF_ID[pc_out]: endereço da instrução vindo do registrador anterior
+    // [63:0] imme_out: imediato
 
     RegN registrador_ID_EX (
         .CLK        (CLK        ), 
         .RESET      (~rst_n     ), 
         .ENABLE     (1'b1      ), 
-        .LOAD       ({control_signals, rf_out_A, rf_out_B, reg_IF_ID[19:15], reg_IF_ID[24:20], reg_IF_ID[11:7], imme_out} ), 
+        .LOAD       ({control_signals, rf_out_A, rf_out_B, reg_IF_ID[19:15], reg_IF_ID[24:20], reg_IF_ID[11:7], reg_IF_ID[95:32], imme_out} ), 
         .Q          (reg_ID_EX    )
     );    
 
@@ -156,7 +154,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     );
     
     //              pc_out 
-    Add add2 (reg_ID_EX[255:192], imme_shift, add_out_2);
+    Add add2 (reg_ID_EX[127:64], imme_shift, add_out_2);
 
     wire [63:0] ula_operand1, ula_operand2;
 
@@ -189,8 +187,8 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
 
     //SUS
     //assign feito para controlar o shift do imediato
-    assign imme_shift = (mem_out[6:0] == 7'b0010111) ? imme_out << 12'b0 : 
-                        (mem_out[6:0] == 7'b1101111) ? imme_out << 1'b0 : imme_out << 1'b1;
+    assign imme_shift = (mem_out[6:0] == 7'b0010111) ? reg_ID_EX[63:0] << 12'b0 : 
+                        (mem_out[6:0] == 7'b1101111) ? reg_ID_EX[63:0] << 1'b0 : reg_ID_EX[63:0] << 1'b1;
 
     assign d_mem_addr = ula_out;
 
