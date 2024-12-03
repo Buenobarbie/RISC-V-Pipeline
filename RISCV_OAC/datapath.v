@@ -13,7 +13,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     output wire [i_addr_bits-1:0]    i_mem_addr,  
     output wire [d_addr_bits-1:0]    d_mem_addr,
 
-    inout [63:0] d_mem_data,
+    input [63:0] d_mem_data,
     input wire [31:0] instruction
 );
 
@@ -77,7 +77,22 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
         .Q          (reg_IF_ID    )
     );
 
-
+    wire stall_F;
+    wire stall_D;
+    wire flush_D;
+    wire flush_E;
+    
+    load_hazard_correction load_hazard_correction (
+        .Rs1D (reg_IF_ID[19:15]),
+        .Rs2D (reg_IF_ID[24:20]),
+        .RdE  (reg_MEM_WB[11:7]),
+        .ResultSrcE0 (),
+        .PCSrcE (pc_src & zero),
+        .StallF (stall_F),
+        .StallD (stall_D),
+        .FlushD (flush_D),
+        .FlushE (flush_E)
+    );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

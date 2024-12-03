@@ -1,7 +1,7 @@
 module load_hazard_correction (
     input [4:0] Rs1D, Rs2D, RdE; 
     input ResultSrcE0, PCSrcE;
-    output Stall F, StallD, FlushD, FlushE; 
+    output StallF, StallD, FlushD, FlushE; 
 );
 
     wire lwStall = ResultSrcE0 && ((Rs1D == RdE) || (Rs2D == RdE));
@@ -11,5 +11,5 @@ module load_hazard_correction (
 
     FlushD = PCSrcE;
     FlushE = lwStall || PCSrcE;
-    
+
 endmodule
