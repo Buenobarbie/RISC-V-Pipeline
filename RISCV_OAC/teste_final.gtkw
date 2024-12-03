@@ -1,38 +1,57 @@
 [*]
 [*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
-[*] Mon Dec 02 16:47:03 2024
+[*] Tue Dec 03 01:57:47 2024
 [*]
 [dumpfile] "C:\Users\najoa\Documents\OAC\RISC-V-Pipeline\RISCV_OAC\teste_final.vcd"
-[dumpfile_mtime] "Mon Dec 02 16:30:35 2024"
-[dumpfile_size] 575070
+[dumpfile_mtime] "Tue Dec 03 01:40:20 2024"
+[dumpfile_size] 805873
 [savefile] "C:\Users\najoa\Documents\OAC\RISC-V-Pipeline\RISCV_OAC\teste_final.gtkw"
-[timestart] 0
+[timestart] 115460
 [size] 1366 705
-[pos] -165 -98
-*-16.155466 51000 200000 250000 400000 550000 600000 750000 900000 950000 1100000 1252000 1300000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] -113 -98
+*-14.155466 160160 200000 250000 400000 550000 600000 750000 900000 950000 1100000 1252000 1300000 100000 120000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] testbench.
 [treeopen] testbench.RISC_V.
+[treeopen] testbench.RISC_V.fd.RF.reg_file[7].
 [sst_width] 197
 [signals_width] 158
 [sst_expanded] 1
-[sst_vpaned_height] 201
+[sst_vpaned_height] 250
 @28
 testbench.clk
-@22
-testbench.RISC_V.uc.state[3:0]
 @24
 testbench.RISC_V.fd.pc_out[63:0]
-testbench.RISC_V.d_mem_data[63:0]
+testbench.RISC_V.uc.state[2:0]
+@28
+testbench.RISC_V.uc.opcode[6:0]
+testbench.RISC_V.uc.ula_ops[1:0]
+testbench.RISC_V.uc.func3[2:0]
+testbench.RISC_V.uc.ula_cmd[2:0]
+testbench.RISC_V.fd.ula_cmd2[2:0]
+@24
 testbench.RISC_V.fd.RF.reg_file[1].reg_instance.Q[63:0]
 testbench.RISC_V.fd.RF.reg_file[2].reg_instance.Q[63:0]
 @22
 testbench.RISC_V.fd.RF.reg_file[3].reg_instance.Q[63:0]
 testbench.RISC_V.fd.RF.reg_file[4].reg_instance.Q[63:0]
+@24
+testbench.RISC_V.fd.RF.reg_file[5].reg_instance.Q[63:0]
+@22
+testbench.RISC_V.fd.RF.reg_file[6].reg_instance.Q[63:0]
+testbench.RISC_V.fd.RF.reg_file[7].reg_instance.Q[63:0]
 @28
 testbench.RISC_V.uc.ula_src
 testbench.RISC_V.uc.rf_src
 testbench.RISC_V.uc.rf_we
 testbench.RISC_V.uc.d_mem_we
 testbench.RISC_V.uc.branch
+@25
+testbench.RISC_V.fd.ula.operand1[63:0]
+@24
+testbench.RISC_V.fd.ula.operand2[63:0]
+@22
+testbench.RISC_V.fd.ula_out[63:0]
+@24
+testbench.RISC_V.d_mem_data[63:0]
 [pattern_trace] 1
 [pattern_trace] 0

@@ -9,7 +9,7 @@ module uc (input wire        clk,
            output reg        d_mem_we,
            output reg        d_mem_re,
            output reg        rf_we,   
-           output reg  [2:0] ula_cmd, 
+           output wire  [2:0] ula_cmd, 
            output reg        ula_src, 
            output reg        branch,  
            output reg        rf_src   
@@ -20,22 +20,12 @@ module uc (input wire        clk,
     wire  RtypeSub;
     assign RtypeSub = func7b5 & opcode[5];  // TRUE for R-type subtract instruction
 
-    always @(posedge clk or ula_ops) begin
-        case(ula_ops)
-        2'b00:                ula_cmd <= 3'b000; // addition
-        2'b01:                ula_cmd <= 3'b001; // subtraction
-        default: case(func3) // R-type or I-type ALU
-                    3'b000: if (RtypeSub) 
-                                ula_cmd <= 3'b001; // sub
-                            else          
-                                ula_cmd <= 3'b000; // add, addi
-                    3'b010:    ula_cmd <= 3'b101; // slt, slti
-                    3'b110:    ula_cmd <= 3'b011; // or, ori
-                    3'b111:    ula_cmd <= 3'b010; // and, andi
-                    default:   ula_cmd <= 3'bxxx; // ???
-                endcase
-        endcase
-    end
+    assign ula_cmd = (ula_ops == 2'b00) ? 3'b000 :                          // add, addi
+                     (ula_ops == 2'b01) ? 3'b001 :                          // sub, subi
+                     (func3 ==  3'b000) ? ((RtypeSub) ? 3'b001 : 3'b000) :  // sub, add
+                     (func3 ==  3'b010) ? 3'b101 :                          // slt
+                     (func3 ==  3'b110) ? 3'b011 :                          // or
+                     (func3 ==  3'b111) ? 3'b010 : 3'bxxx;                  // and
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,8 +52,8 @@ module uc (input wire        clk,
             state <= RESET;     
         end
         else begin 
-            if (state == RESET) state <= STALL;
-            else begin
+            // if (state == RESET) state <= STALL;
+            // else begin
                 case (opcode)
                     7'b0110011: state <= EXE_ADD; // R - Type
                     7'b0000011: state <= EXE_LB;  // I - Type
@@ -71,11 +61,11 @@ module uc (input wire        clk,
                     7'b1100011: state <= EXE_BEQ; // SB - Type
                     default:    state <= RESET;
                 endcase
-            end
+            // end
         end
     end
 
-    always@ (posedge clk or state)
+    always@ (state)
         begin
             case (state)
                 RESET:

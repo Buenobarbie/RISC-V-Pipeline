@@ -13,6 +13,9 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     output wire                      zero,
     output wire                      d_mem_we,
     output wire                      d_mem_re,
+    output wire [6:0]                opcode,
+    output wire [14:12]              func3,
+    output wire                      func7b5,
     output wire [i_addr_bits-1:0]    i_mem_addr,  
     output wire [d_addr_bits-1:0]    d_mem_addr,
 
@@ -100,6 +103,10 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     );
 
 //////////////////////////////////////////////// Instruction decode ///////////////////////////////////////////////////   
+
+    assign opcode   = instr[6:0];
+    assign func3    = instr[14:12];
+    assign func7b5  = instr[30];
 
     RegisterFile RF (
         .CLK        (clk            ),

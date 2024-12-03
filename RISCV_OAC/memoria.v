@@ -12,25 +12,24 @@ module memoria (input [5:0] i_mem_addr, input [5:0] d_mem_addr, input d_we, inpu
     end
 
     initial begin
-        instruction[0] = 32'b0000000_00000_00000_000_00010_1100011; // BEQ:   Formato Sb; if(true) jump to instruction[0+4]
-        instruction[4] = 32'b000000000001_11111_000_00001_0000011;  // LOADa:  Formato I; x1 <= 50
-        instruction[8] = 32'b000000000010_11111_000_00010_0000011;  // LOADb:  Formato I; x2 <= 30
-        instruction[12] = 32'b000000000100_11111_000_00011_0000011;  // LOADc:  Formato I; x3 <= LSB(1)
-        instruction[16] = 32'b0000000_00010_00001_000_10100_1100011;  // BEQ:   Formato Sb; if(x1 == x2) jump to instruction[16+40]
+        instruction[0]  = 32'b000000000001_11111_000_00001_0000011;   // lw x1, 1(x31)  -- Carrega 50 em x1
+        instruction[4]  = 32'b000000000010_11111_000_00010_0000011;   // lw x2, 2(x31)  -- Carrega 30 em x2
+        instruction[8]  = 32'b000000000100_11111_000_00011_0000011;   // lw x3, 4(x31)  -- Carrega um valor grande em x3
 
-            instruction[20] = 32'b0100000_00010_00001_000_00100_0110011;  // SUB:  Formato R; x4 <= x2 - x1
-            instruction[24] = 32'b0000000_00100_00011_111_00101_0110011;  // AND:  Formato R; x5 <= x3 & x4
-            instruction[28] = 32'b0000000_00011_00101_000_01000_1100011;  // BEQ:  Formato Sb; if (x5 < 0) jump to instruction[28+16]
-                instruction[44] = 32'b0100000_00001_00010_000_00111_0110011;  // SUB:  Formato R; x7 <= x1 - x2
-                instruction[48] = 32'b0000000_00000_00111_000_00001_0110011;  // ADD:  Formato R; x1 <= x7 + x0
-                instruction[52] = 32'b1111111_10000_10000_000_01111_1100011;  // BEQ:  Formato Sb; if (true) jump to instruction[52-36]
+        instruction[12]  = 32'b000000000100_11111_000_10000_0000011;   // lw x3, 4(x31)  -- Carrega um valor grande em x3
+        instruction[16]  = 32'b000000000100_11111_000_10001_0000011;   // lw x3, 4(x31)  -- Carrega um valor grande em x3
 
-            instruction[32] = 32'b0100000_00010_00001_000_00111_0110011;  // SUB:  Formato R; x7 <= x2 - x1
-            instruction[36] = 32'b0000000_00000_00111_000_00010_0110011;  // ADD:  Formato R; x2 <= x7 + x0
-            instruction[40] = 32'b1111111_10000_10000_000_10101_1100011;  // BEQ:  Formato Sb; if (true) jump to instruction[40-24]
+        instruction[20] = 32'b0000000_00001_00010_000_00100_0110011;  // add x4, x1, x2 -- x4 = 50 + 30 = 80
+        instruction[24] = 32'b0100000_00001_00010_000_00101_0110011;  // sub x5, x1, x2 -- x5 = 50 - 30 = 20
 
-        instruction[56] = 32'b0000000_00001_00000_000_00011_0100011; // STORE:  Formato S; MEM <= x1
-        instruction[60] = 32'b0000000_00000_00000_000_00000_1100011;   // BEQ:  Formato Sb; if (true) jump to instruction[60]
+        instruction[28] = 32'b0000000_00001_00011_111_00110_0110011;  // and x6, x1, x3 -- Operação bitwise entre 20 e x3
+        instruction[32] = 32'b0000000_00001_00011_110_00111_0110011;  // or  x7, x1, x3 -- Operação OR entre x1 (50) e x3
+
+        instruction[36] = 32'b0000000_00100_00001_000_01000_1100011;  // beq x4, x1, jump -- Salta se x4 == x1 (falso, sem salto)
+
+        instruction[40] = 32'b0000000_00101_00000_000_00000_0100011;  // sw x5, 0(x0)   -- Armazena x7 na memória
+        instruction[44] = 32'b1111111_10000_10000_000_00000_1100011;  // beq sempre verdadeiro, loop infinito
+
 
         data[65] = 64'd50;
         data[66] = 64'd30;
