@@ -1,9 +1,9 @@
-module hazard_detection_unit (
+module harzard_detection_unit (
     input wire       ID_EX_MemRead,
     input wire [4:0] ID_EX_RegisterRd,
     input wire [4:0] IF_ID_RegisterRs1,
     input wire [4:0] IF_ID_RegisterRs2,
-    output reg hazard_detection_src;
+    output wire hazard_detection_src
 );
 
     reg stall;

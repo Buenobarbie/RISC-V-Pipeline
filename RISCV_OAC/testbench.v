@@ -4,7 +4,7 @@
 
 Para executar utilizamos um ambiente PS e executamos os seguintes comandos:
 
-$ iverilog -o dsn datapath.v memoria.v processador.v testbench.v uc.v Add.v ImmGen.v Mux_2x1.v PC.v RegN.v RF.v Som_sub.v Somador.v ULA.v
+$ iverilog -o dsn datapath.v memoria.v processador.v testbench.v uc.v Add.v ImmGen.v Mux_2x1.v PC.v RegN.v RF.v Som_sub.v Somador.v ULA.v hazard_detection_unit.v forwarding_unit.v Mux_3x1.v
 $ vvp.exe dsn
 $ gtkwave test_final.vcd 
 

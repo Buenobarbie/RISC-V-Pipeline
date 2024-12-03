@@ -1,22 +1,29 @@
 module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     input wire        clk, 
     input wire        rst_n,  
-    input wire        d_mem_we, 
+    input wire        d_mem_we_fd,
+    input wire        d_mem_re_fd, 
     input wire        rf_we,
     input wire        ula_src, 
+    input wire        branch, 
     input wire        rf_src,
     input wire [2:0]  ula_cmd,
     input wire [31:0] i_mem_data,
     //saidas
     output wire                      zero,
+    output wire                      d_mem_we,
+    output wire                      d_mem_re,
+    output wire [6:0]                opcode,
+    output wire [14:12]              func3,
+    output wire                      func7b5,
     output wire [i_addr_bits-1:0]    i_mem_addr,  
     output wire [d_addr_bits-1:0]    d_mem_addr,
 
-    inout [63:0] d_mem_data,
-    input wire [31:0] instruction
+    inout [63:0] d_mem_data
 );
 
     wire [31:0] mem_out;
+    wire [31:0] instruction;
 
     wire [63:0] pc_out, 
                 add_out_1, 
@@ -70,7 +77,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     wire [95:0] reg_IF_ID;
     // pc_out: endereço da instrução  [95:32]
     // mem_out: instrução de 32 bits  [31:0]
-    RegN registrador_IF_ID (
+    regN #(.N(96)) registrador_IF_ID (
         .CLK        (CLK        ), 
         .RESET      (~rst_n     ), 
         .ENABLE     (hazard_detection_src),  // Se houver stall, reg_IF_ID não é atualizado (hazard_detection_src = 0)    
@@ -83,6 +90,10 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
 //////////////////////////////////////////////// Instruction decode ///////////////////////////////////////////////////   
 
     assign instruction = reg_IF_ID[31:0];
+
+    assign opcode = instruction[6:0];
+    assign func3 = instruction[14:12];
+    assign func7b5 = instruction[30];
 
     harzard_detection_unit hazard_detection_unit (
     .ID_EX_MemRead     (~reg_ID_EX[277]),  // MemRead é o contrário de d_mem_we
@@ -113,7 +124,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     mux_2x1  #(.N(7))
     mux_stall(
         .d0 (7'b0  ), // Se stall (harzard_detection_unit = 0), os sinais de controle devem ser todos 0
-        .d1 ({d_mem_we, ula_cmd, ula_src, branch, rf_src}  ), 
+        .d1 ({d_mem_we_fd, ula_cmd, ula_src, branch, rf_src}  ), 
         .S  (hazard_detection_src), 
         .Y  (control_signals          )
     );
@@ -132,7 +143,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     // [127:64] registrador_IF_ID[pc_out]: endereço da instrução vindo do registrador anterior
     // [63:0] imme_out: imediato
 
-    RegN registrador_ID_EX (
+    regN #(.N(278)) registrador_ID_EX (
         .CLK        (CLK        ), 
         .RESET      (~rst_n     ), 
         .ENABLE     (1'b1      ), 
@@ -146,12 +157,12 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     
     wire [1:0] forwardA, forwardB;
     forwarding_unit forwarding_unit (
-        .EX_MEM_RegWrite    (reg_EX_MEM[] ), 
-        .EX_MEM_RegisterRd   (reg_EX_MEM[] ), 
-        .ID_EX_RegisterRs1   (reg_ID_EX[] ), 
-        .ID_EX_RegisterRs2   (reg_ID_EX[] ), 
-        .MEM_WB_RegWrite    (reg_MEM_WB[] ), 
-        .MEM_WB_RegisterRd   (reg_MEM_WB[] ), 
+        .EX_MEM_RegWrite    (reg_EX_MEM[200] ), 
+        .EX_MEM_RegisterRd   (reg_EX_MEM[4:0] ), 
+        .ID_EX_RegisterRs1   (reg_ID_EX[142:138]  ), 
+        .ID_EX_RegisterRs2   (reg_ID_EX[137:133]  ), 
+        .MEM_WB_RegWrite    (reg_MEM_WB[133] ), 
+        .MEM_WB_RegisterRd   (reg_MEM_WB[132:128] ), 
         .ForwardA           (forwardA    ), 
         .ForwardB           (forwardB    )
     );
@@ -208,7 +219,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     // [4:0]  Rd_addr endereco do registrador de destino
 
 
-    RegN registrador_EX_MEM (
+    regN #(.N(201)) registrador_EX_MEM (
         .CLK        (CLK        ), 
         .RESET      (~rst_n     ), 
         .ENABLE     (1'b1       ), 
@@ -235,7 +246,7 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     // [127:64] ram_out: dado da memória de dados
     // [63:0] ula_out: resultado da operação da ula
 
-    RegN registrador_MEM_WB (
+    regN #(.N(134)) registrador_MEM_WB (
         .CLK        (CLK        ), 
         .RESET      (~rst_n     ), 
         .ENABLE     (1'b1      ), 
@@ -245,6 +256,9 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
 
     // BRANCH
     assign pc_src = reg_EX_MEM[133] && reg_EX_MEM[199];
+
+    assign d_mem_we = reg_EX_MEM[200];
+    assign d_mem_re = ~d_mem_we;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -257,25 +271,6 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
         .Y  (ram_out_mux)
     );
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //Fazemos isso no datapath para que cada 4 ciclos de clock da UC ser 1 ciclo de clock do FD
-
-    reg CLK = 0;
-    integer i = 2;
-
-    always @ (posedge clk) begin
-        if (i == 3) begin
-            CLK <= 1;
-            i = 0;
-        end
-        else if (i == 1) begin
-            CLK <= 0;
-            i = i + 1;
-        end
-        else begin
-            i = i + 1;
-        end
-    end
 
 endmodule
