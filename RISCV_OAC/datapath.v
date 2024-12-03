@@ -161,11 +161,11 @@ module datapath #(parameter i_addr_bits = 6, parameter d_addr_bits = 6) (
     wire [1:0] forwardA, forwardB;
     forwarding_unit forwarding_unit (
         .EX_MEM_RegWrite    (reg_EX_MEM[197] ), 
-        .EX_MEM_RegisterRd   (reg_EX_MEM[197:193] ), 
-        .ID_EX_RegisterRs1   (reg_ID_EX[127:123] ), 
-        .ID_EX_RegisterRs2   (reg_ID_EX[122:118] ), 
+        .EX_MEM_RegisterRd  (reg_EX_MEM[197:193] ), 
+        .ID_EX_RegisterRs1  (reg_ID_EX[127:123] ), 
+        .ID_EX_RegisterRs2  (reg_ID_EX[122:118] ), 
         .MEM_WB_RegWrite    (reg_MEM_WB[197] ), 
-        .MEM_WB_RegisterRd   (reg_MEM_WB[197:193] ), 
+        .MEM_WB_RegisterRd  (reg_MEM_WB[197:193] ), 
         .ForwardA           (forwardA    ), 
         .ForwardB           (forwardB    )
     );
